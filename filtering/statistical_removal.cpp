@@ -15,7 +15,7 @@ void
 showHelp(char * program_name)
 {
   std::cout << std::endl;
-  std::cout << "Usage: " << program_name << " in_filename.ply" << std::endl;
+  std::cout << "Usage: " << program_name << " in_filename.ply out_filename.ply" << std::endl;
   std::cout << "-h:  Show this help." << std::endl;
 }
 
@@ -33,7 +33,7 @@ main (int argc, char** argv)
 
   filenames = pcl::console::parse_file_extension_argument (argc, argv, ".ply");
 
-  if (filenames.size() != 1){
+  if (filenames.size() != 2){
     showHelp (argv[0]);
     return -1;
   }
@@ -50,12 +50,12 @@ main (int argc, char** argv)
   // Create the filtering object
   pcl::StatisticalOutlierRemoval<pcl::PointXYZRGBA> sor;
   sor.setInputCloud (cloud);
-  sor.setMeanK (50);
-  sor.setStddevMulThresh (1.0);
+  sor.setMeanK (15);
+  sor.setStddevMulThresh (3.0);
   sor.filter (*cloud_filtered);
 
   pcl::PLYWriter writer;
-  writer.write<pcl::PointXYZRGBA> ("filtered.ply", *cloud_filtered, false);
+  writer.write<pcl::PointXYZRGBA> (argv[filenames[1]], *cloud_filtered, false);
 
   return (0);
 }
