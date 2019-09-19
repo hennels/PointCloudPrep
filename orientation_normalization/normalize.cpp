@@ -108,7 +108,7 @@ void
 showHelp(char * program_name)
 {
   std::cout << std::endl;
-  std::cout << "Usage: " << program_name << " in_filename.ply" << std::endl;
+  std::cout << "Usage: " << program_name << " in_filename.ply out_filename.ply" << std::endl;
   std::cout << "-h:  Show this help." << std::endl;
 }
 
@@ -126,7 +126,7 @@ main (int argc, char** argv)
 
   filenames = pcl::console::parse_file_extension_argument (argc, argv, ".ply");
 
-  if (filenames.size() != 1){
+  if (filenames.size() != 2){
     showHelp (argv[0]);
     return -1;
   }
@@ -157,7 +157,7 @@ main (int argc, char** argv)
   // Mandatory
   seg.setModelType (pcl::SACMODEL_LINE);
   seg.setMethodType (pcl::SAC_RANSAC);
-  seg.setDistanceThreshold (0.02);
+  seg.setDistanceThreshold (0.05);
 
   seg.setInputCloud (cloud);
   seg.segment (*inliers, *coefficients);
@@ -193,8 +193,8 @@ main (int argc, char** argv)
                                       << coefficients->values[4] << " "
                                       << coefficients->values[5] << std::endl;*/
   
-  //pcl::PLYWriter writer;
-  //writer.write<pcl::PointXYZRGBA> ("filtered.ply", *cloud_filtered, false);
+  pcl::PLYWriter writer;
+  writer.write<pcl::PointXYZRGBA> (argv[filenames[1]], *cloud, false);
   
   //pcl::visualization::PCLVisualizer::Ptr viewer = simpleVis(cloud_filtered);
   /*
