@@ -1,8 +1,9 @@
+import numpy as np
 from scipy.spatial import cKDTree as KDTree
 from plyReader import DirtyPlyFile
 
 class DistFunc:
-    def __init__(self, plyfile, chan=3, offset=0.0, normalize_data=True, n_jobs=-1):
+    def __init__(self, plyfile, chan=3, offset=0.0, normalize_data=False, n_jobs=-1):
         self.filename = plyfile
         self.offset = offset
         self.plyfile = None
@@ -31,3 +32,7 @@ class DistFunc:
 
     def sample_dist(self, X):
         return self.tree.query(X, n_jobs=self.n_jobs)[0]-self.offset
+
+    def random_sample(self, n=100):
+        X = 2*np.random.rand(n,3)-1
+        return X, self.tree.query(X, n_jobs=self.n_jobs)[0]-self.offset
