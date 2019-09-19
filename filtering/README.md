@@ -16,7 +16,6 @@ make
 
 Run with:
 ```
-./statistical_removal path/to/file.ply
+./statistical_removal path/to/input/file.ply path/to/output/file.ply
 ```
 
-Output will be stored as `filtered.ply` in the current directory.
