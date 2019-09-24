@@ -69,6 +69,18 @@ class DistFunc:
     def sample_dist(self, X):
         return self.tree.query(X, n_jobs=self.n_jobs)[0]-self.offset
 
-    def random_sample(self, n=100):
+    def random_sample_cube(self, n=100):
         X = 2*np.random.rand(n,3)-1
+        return X, self.tree.query(X, n_jobs=self.n_jobs)[0]-self.offset
+    
+    def random_sample_sphere(self, n=100, R=1.0):
+        X = np.random.rand(n,3)
+        phi = 2*np.pi*X[:,0]
+        theta = np.arccos(2*X[:,1]-1)
+        r = R*np.cbrt(X[:,2])
+        stheta = np.sin(theta)
+        X[:,0] = stheta*np.cos(phi)
+        X[:,1] = stheta*np.sin(phi)
+        X[:,2] = np.cos(theta)
+        X = r.reshape(-1,1)*X
         return X, self.tree.query(X, n_jobs=self.n_jobs)[0]-self.offset
