@@ -84,3 +84,11 @@ class DistFunc:
         X[:,2] = np.cos(theta)
         X = r.reshape(-1,1)*X
         return X, self.tree.query(X, n_jobs=self.n_jobs)[0]-self.offset
+    
+    def balanced_sample_sphere(self, n=100, R= 1.0):
+        X , dist = self.random_sample_sphere(self, n=n, R=R)
+        inds = (dist > 0)
+        while 2*inds.sum() > n:
+            X[inds, :], dists[inds] = self.random_sample_sphere(self, n=inds.sum(), R=R)
+            inds = (dist > 0)
+        return X , dist
