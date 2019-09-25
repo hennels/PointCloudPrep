@@ -89,6 +89,6 @@ class DistFunc:
         X , dist = self.random_sample_sphere(n=n, R=R)
         inds = (dist > 0)
         while 2*inds.sum() > n:
-            X[inds, :], dists[inds] = self.random_sample_sphere(n=inds.sum(), R=R)
+            X[inds, :], dist[inds] = self.random_sample_sphere(n=inds.sum(), R=R)
             inds = (dist > 0)
         return X , dist
