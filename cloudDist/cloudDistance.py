@@ -86,7 +86,7 @@ class DistFunc:
         return X, self.tree.query(X, n_jobs=self.n_jobs)[0]-self.offset
     
     def balanced_sample_sphere(self, n=100, R= 1.0):
-        lim = 0.0 if self.offset > 0 else 0.05
+        lim = 0.0 if self.offset > 0 else 0.1
         X , dist = self.random_sample_sphere(n=n, R=R)
         inds = (dist > lim)
         while 2*inds.sum() > n:
