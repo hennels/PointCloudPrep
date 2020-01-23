@@ -51,7 +51,7 @@ main (int argc, char** argv)
   pcl::StatisticalOutlierRemoval<pcl::PointXYZRGBA> sor;
   sor.setInputCloud (cloud);
   sor.setMeanK (15);
-  sor.setStddevMulThresh (3.0);
+  sor.setStddevMulThresh (3.5);
   sor.filter (*cloud_filtered);
 
   pcl::PLYWriter writer;

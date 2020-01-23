@@ -25,7 +25,7 @@ simpleVis (pcl::PointCloud<pcl::PointXYZRGBA>::ConstPtr cloud)
   return (viewer);
 }
 
-Eigen::Matrix4f Rmat(double start_x, double start_y, double start_z, double end_x, double end_y, double end_z){
+Eigen::Matrix4f Rmat(double start_x, double start_y, double start_z, double end_x, double end_y, double end_z, double point_x, double point_y, double point_z){
   double start_mag = sqrt(start_x*start_x + start_y*start_y + start_z*start_z);
   double end_mag = sqrt(end_x*end_x + end_y*end_y + end_z*end_z);
   start_x = start_x/start_mag;
@@ -61,6 +61,11 @@ Eigen::Matrix4f Rmat(double start_x, double start_y, double start_z, double end_
   transform(2,0) = transform(2,0)+k_x*k_z*o_m_cos_theta;
   transform(2,1) = transform(2,1)+k_y*k_z*o_m_cos_theta;
   transform(2,2) = transform(2,2)-(k_y*k_y+k_x*k_x)*o_m_cos_theta;
+
+  // offset so line passes through origin
+  transform(0,3) = (start_x*start_x-1.0)*point_x + start_x*start_y*point_y + start_x*start_z*point_z;
+  transform(1,3) = start_x*start_y*point_x + (start_y*start_y - 1.0)*point_y + start_y*start_z*point_z;
+  transform(1,3) = start_x*start_z*point_x + start_y*start_z*point_y + (start_z*start_z - 1.0)*point_z;
   return transform;
 }
 
@@ -108,7 +113,8 @@ void
 showHelp(char * program_name)
 {
   std::cout << std::endl;
-  std::cout << "Usage: " << program_name << " in_filename.ply out_filename.ply" << std::endl;
+  std::cout << "Usage: " << program_name << "[-f] in_filename.ply out_filename.ply" << std::endl;
+  std::cout << "-f:  Flip the orientation." << std::endl;
   std::cout << "-h:  Show this help." << std::endl;
 }
 
@@ -175,7 +181,7 @@ main (int argc, char** argv)
                                       << coefficients->values[4] << " "
                                       << coefficients->values[5] << std::endl;
   */
-  Eigen::Matrix4f transform = Rmat((double) coefficients->values[3], (double) coefficients->values[4], (double) coefficients->values[5], 0.0, 0.0, flip);
+  Eigen::Matrix4f transform = Rmat((double) coefficients->values[3], (double) coefficients->values[4], (double) coefficients->values[5], 0.0, 0.0, flip, (double) coefficients->values[0], (double) coefficients->values[1], (double) coefficients->values[2]);
   //std::cerr << "Transform:\n" << transform << std::endl;
   //pcl::copyPointCloud<pcl::PointXYZRGBA>(*cloud, *inliers, *cloud_filtered);
   pcl::transformPointCloud (*cloud, *cloud, transform);
