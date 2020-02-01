@@ -101,6 +101,18 @@ Eigen::Matrix4f center_scale(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloud){
   return transform2*transform1;
 }
 
+Eigen::Matrix4f meanZat0(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloud){
+  Eigen::Matrix4f transform = Eigen::Matrix4f::Identity();
+  if (cloud->points.size() > 0){
+    double sum_z = 0;
+    for (size_t i = 0; i < cloud->points.size(); i++){
+      sum_z += (double) cloud->points[i].z;
+    }
+    transform(2,3) = -1.0*sum_z/((double) cloud->points.size());
+  }
+  return transform;
+}
+
 
 /*
   Adapted from Removing sparse outliers using StatisticalOutlierRemoval
@@ -113,8 +125,9 @@ void
 showHelp(char * program_name)
 {
   std::cout << std::endl;
-  std::cout << "Usage: " << program_name << "[-f] in_filename.ply out_filename.ply" << std::endl;
+  std::cout << "Usage: " << program_name << "[-f] [-p] in_filename.ply out_filename.ply" << std::endl;
   std::cout << "-f:  Flip the orientation." << std::endl;
+  std::cout << "-p:  Flip the orientation." << std::endl;
   std::cout << "-h:  Show this help." << std::endl;
 }
 
@@ -141,6 +154,12 @@ main (int argc, char** argv)
     flip = -1.0;
   }
 
+  int plot = 0;
+  if (pcl::console::find_switch (argc, argv, "-p")){
+    plot = 1;
+  }
+
+
   pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGBA>);
   pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZRGBA>);
 
@@ -156,14 +175,15 @@ main (int argc, char** argv)
 
   pcl::ModelCoefficients::Ptr coefficients (new pcl::ModelCoefficients);
   pcl::PointIndices::Ptr inliers (new pcl::PointIndices);
+
   // Create the segmentation object
   pcl::SACSegmentation<pcl::PointXYZRGBA> seg;
   // Optional
-  seg.setOptimizeCoefficients (true);
+  //seg.setOptimizeCoefficients (true);
   // Mandatory
   seg.setModelType (pcl::SACMODEL_LINE);
   seg.setMethodType (pcl::SAC_RANSAC);
-  seg.setDistanceThreshold (0.05);
+  seg.setDistanceThreshold (0.025);
 
   seg.setInputCloud (cloud);
   seg.segment (*inliers, *coefficients);
@@ -182,36 +202,25 @@ main (int argc, char** argv)
                                       << coefficients->values[5] << std::endl;
   */
   Eigen::Matrix4f transform = Rmat((double) coefficients->values[3], (double) coefficients->values[4], (double) coefficients->values[5], 0.0, 0.0, flip, (double) coefficients->values[0], (double) coefficients->values[1], (double) coefficients->values[2]);
-  //std::cerr << "Transform:\n" << transform << std::endl;
-  //pcl::copyPointCloud<pcl::PointXYZRGBA>(*cloud, *inliers, *cloud_filtered);
   pcl::transformPointCloud (*cloud, *cloud, transform);
-  //seg.segment (*inliers, *coefficients);
-  //if (inliers->indices.size () == 0)
-  //{
-  //  PCL_ERROR ("Could not estimate a linear model for the given dataset.");
-  //  return (-1);
-  //}
-  /*
-  std::cerr << "Model coefficients: " << coefficients->values[0] << " " 
-                                      << coefficients->values[1] << " "
-                                      << coefficients->values[2] << " " 
-				      << coefficients->values[3] << " "
-                                      << coefficients->values[4] << " "
-                                      << coefficients->values[5] << std::endl;*/
-  
+
+  pcl::transformPointCloud (*cloud, *cloud, meanZat0(cloud));
+
   pcl::PLYWriter writer;
   writer.write<pcl::PointXYZRGBA> (argv[filenames[1]], *cloud, false);
-  
+
   //pcl::visualization::PCLVisualizer::Ptr viewer = simpleVis(cloud_filtered);
   /*
   while (!viewer->wasStopped ()){
     viewer->spinOnce (100);
     //std::this_thread::sleep_for(100);
   }*/
-  pcl::visualization::PCLVisualizer::Ptr viewer = simpleVis(cloud);
-  while (!viewer->wasStopped ()){
-    viewer->spinOnce (100);
-    //std::this_thread::sleep_for(100);
+  if (plot){
+    pcl::visualization::PCLVisualizer::Ptr viewer = simpleVis(cloud);
+    while (!viewer->wasStopped ()){
+      viewer->spinOnce (100);
+      //std::this_thread::sleep_for(100);
+    }
   }
   return (0);
 }

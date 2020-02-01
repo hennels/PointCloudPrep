@@ -1,8 +1,21 @@
 #include <iostream>
+#include <pcl/common/transforms.h>
 #include <pcl/io/ply_io.h>
 #include <pcl/console/parse.h>
 #include <pcl/point_types.h>
-#include <pcl/filters/statistical_outlier_removal.h>
+
+Eigen::Matrix4f meanZat0(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloud){
+  Eigen::Matrix4f transform = Eigen::Matrix4f::Identity();
+  if (cloud->points.size() > 0){
+    double sum_z = 0;
+    for (size_t i = 0; i < cloud->points.size(); i++){
+      sum_z += (double) cloud->points[i].z;
+    }
+    transform(2,3) = -1.0*sum_z/((double) cloud->points.size());
+  }
+  return transform;
+}
+
 
 /*
   Adapted from Removing sparse outliers using StatisticalOutlierRemoval
@@ -15,7 +28,7 @@ void
 showHelp(char * program_name)
 {
   std::cout << std::endl;
-  std::cout << "Usage: " << program_name << " in_filename.ply out_filename.ply" << std::endl;
+  std::cout << "Usage: " << program_name << "in_filename.ply out_filename.ply" << std::endl;
   std::cout << "-h:  Show this help." << std::endl;
 }
 
@@ -47,16 +60,10 @@ main (int argc, char** argv)
     return -1;
   }
 
-  // Create the filtering object
-  pcl::StatisticalOutlierRemoval<pcl::PointXYZRGBA> sor;
-  sor.setInputCloud (cloud);
-  sor.setMeanK (15);
-  sor.setStddevMulThresh (1.5);
-  sor.filter (*cloud_filtered);
+  pcl::transformPointCloud (*cloud, *cloud, meanZat0(cloud));
 
   pcl::PLYWriter writer;
-  writer.write<pcl::PointXYZRGBA> (argv[filenames[1]], *cloud_filtered, false);
-
+  writer.write<pcl::PointXYZRGBA> (argv[filenames[1]], *cloud, false);
   return (0);
 }
 
